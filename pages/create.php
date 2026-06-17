@@ -3,9 +3,9 @@ require_once '../config/Database.php';
 require_once '../repository/GameRepository.php';
 
 $database = new Database();
-$db = $database->connect();
+$db = $database->getConnection();
 
-// Genres ophalen voor het keuzemenu
+// Genres dynamisch inladen
 $genreStmt = $db->query("SELECT * FROM genres");
 $genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -14,10 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rating = $_POST['rating'];
     $genre_id = $_POST['genre_id'];
     
-    // Afbeelding upload verwerken
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-        $imageName = time() . '_' . $_FILES['image']['name'];
+        $imageName = time() . '_' . basename($_FILES['image']['name']);
         move_uploaded_file($_FILES['image']['tmp_name'], '../uploads/' . $imageName);
     }
 
@@ -32,41 +31,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Game Toevoegen</title>
+    <title>Game Vault | Toevoegen</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex items-center justify-center py-12 px-4">
-    <div class="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-2xl max-w-md w-full">
-        <h1 class="text-3xl font-bold text-blue-500 mb-6 text-center">🎮 Game Toevoegen</h1>
+    <div class="bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-2xl max-w-md w-full">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 mb-6 text-center uppercase tracking-wide">🎮 Game Toevoegen</h1>
         
-        <form action="create.php" method="POST" enctype="multipart/form-data" class="space-y-5">
+        <form action="create.php" method="POST" enctype="multipart/form-data" class="space-y-6">
             <div>
-                <label class="block text-sm font-medium mb-2">Titel van de game</label>
-                <input type="text" name="title" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Titel van de game</label>
+                <input type="text" name="title" required placeholder="bijv. Ghost Recon Wildlands" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Rating (1-5)</label>
+                    <input type="number" name="rating" min="1" max="5" step="0.1" required placeholder="4.5" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Genre</label>
+                    <select name="genre_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                        <?php foreach ($genres as $genre): ?>
+                            <option value="<?= $genre['id'] ?>"><?= htmlspecialchars($genre['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-2">Rating (1 t/m 5)</label>
-                <input type="number" name="rating" min="1" max="5" step="0.1" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium mb-2">Genre</label>
-                <select name="genre_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    <?php foreach ($genres as $genre): ?>
-                        <option value="<?= $genre['id'] ?>"><?= htmlspecialchars($genre['name']) ?></option>
-                    <?php endjoin; ?>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium mb-2">Cover Afbeelding</label>
-                <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Cover Afbeelding</label>
+                <div class="border-2 border-dashed border-gray-700 rounded-xl p-4 text-center bg-gray-900/50 hover:bg-gray-900 transition-colors cursor-pointer relative">
+                    <input type="file" name="image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <p class="text-sm text-gray-400">Klik hier om een afbeelding te selecteren</p>
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG of JPEG</p>
+                </div>
             </div>
 
             <div class="pt-4 flex space-x-4">
-                <a href="games.php" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-semibold transition">Annuleren</a>
-                <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold transition shadow-lg">Opslaan</button>
+                <a href="games.php" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 py-3.5 rounded-xl font-bold transition-colors">Annuleren</a>
+                <button type="submit" class="w-1/2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 py-3.5 rounded-xl font-bold transition-all shadow-lg">Opslaan</button>
             </div>
         </form>
     </div>

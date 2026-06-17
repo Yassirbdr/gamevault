@@ -2,91 +2,84 @@
 require_once '../config/Database.php';
 require_once '../repository/GameRepository.php';
 
-$message = "";
-$game = null;
+$database = new Database();
+$db = $database->getConnection();
 
-try {
-    $db = new Database();
-    $conn = $db->getConnection();
-    $repo = new GameRepository($conn);
+$gameRepo = new GameRepository($database);
 
-    // 1. Haal de huidige gegevens van de game op basis van het ID in de URL
-    if (isset($_GET['id'])) {
-        $game = $repo->getById($_GET['id']);
+if (!isset($_GET['id'])) {
+    header("Location: games.php");
+    exit();
+}
+
+$id = $_GET['id'];
+$game = $gameRepo->getGameById($id);
+
+// Genres ophalen
+$genreStmt = $db->query("SELECT * FROM genres");
+$genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['title'];
+    $rating = $_POST['rating'];
+    $genre_id = $_POST['genre_id'];
+    
+    $imageName = null;
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+        $imageName = time() . '_' . basename($_FILES['image']['name']);
+        move_uploaded_file($_FILES['image']['tmp_name'], '../uploads/' . $imageName);
     }
 
-    if (!$game) {
-        die("Game niet gevonden.");
-    }
-
-    // 2. Verwerk het formulier als er op 'Bijwerken' wordt geklikt
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $game_id = $_POST['game_id'];
-        $title = $_POST['title'];
-        $description = $_POST['description'];
-        $released_at = $_POST['released_at'];
-        $personal_rating = $_POST['personal_rating'];
-
-        if ($repo->update($game_id, $title, $description, $released_at, $personal_rating)) {
-            header("Location: games.php");
-            exit();
-        } else {
-            $message = "<p style='color:red;'>❌ Bewerken mislukt.</p>";
-        }
-    }
-} catch (Exception $e) {
-    $message = "<p style='color:red;'>❌ Fout: " . $e->getMessage() . "</p>";
+    $gameRepo->updateGame($id, $title, $rating, $genre_id, $imageName);
+    header("Location: games.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Game Bewerken</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .form-container { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="number"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        .btn { padding: 10px 15px; background-color: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-weight: bold; }
-        .btn-cancel { background-color: #6c757d; color: white; margin-left: 10px; }
-    </style>
+    <title>Game Vault | Bewerken</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-
-    <h1>🎮 Game Bewerken</h1>
-    
-    <?php echo $message; ?>
-
-    <div class="form-container">
-        <form action="edit.php?id=<?php echo $game['game_id']; ?>" method="POST">
-            <input type="hidden" name="game_id" value="<?php echo $game['game_id']; ?>">
-
-            <div class="form-group">
-                <label for="title">Titel:</label>
-                <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($game['title']); ?>" required>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="bg-gray-800 border border-gray-700 p-8 rounded-2xl shadow-2xl max-w-md w-full">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 mb-6 text-center uppercase tracking-wide">✏️ Game Bewerken</h1>
+        
+        <form action="edit.php?id=<?= $id ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div>
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Titel van de game</label>
+                <input type="text" name="title" value="<?= htmlspecialchars($game['title']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
             </div>
 
-            <div class="form-group">
-                <label for="description">Beschrijving:</label>
-                <textarea id="description" name="description" rows="4" required><?php echo htmlspecialchars($game['description']); ?></textarea>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Rating (1-5)</label>
+                    <input type="number" name="rating" min="1" max="5" step="0.1" value="<?= htmlspecialchars($game['rating']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Genre</label>
+                    <select name="genre_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                        <?php foreach ($genres as $genre): ?>
+                            <option value="<?= $genre['id'] ?>" <?= $genre['id'] == $game['genre_id'] ? 'selected' : '' ?>><?= htmlspecialchars($genre['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="released_at">Release Datum:</label>
-                <input type="date" id="released_at" name="released_at" value="<?php echo $game['released_at']; ?>" required>
+            <div>
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Nieuwe Cover Afbeelding (optioneel)</label>
+                <div class="border-2 border-dashed border-gray-700 rounded-xl p-4 text-center bg-gray-900/50 hover:bg-gray-900 transition-colors cursor-pointer relative">
+                    <input type="file" name="image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <p class="text-sm text-gray-400">Klik om te wijzigen of sleep foto hiernaartoe</p>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="personal_rating">Persoonlijke Rating (1-10):</label>
-                <input type="number" id="personal_rating" name="personal_rating" min="1" max="10" value="<?php echo $game['personal_rating']; ?>" required>
+            <div class="pt-4 flex space-x-4">
+                <a href="games.php" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 py-3.5 rounded-xl font-bold transition-colors">Annuleren</a>
+                <button type="submit" class="w-1/2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 py-3.5 rounded-xl font-bold transition-all shadow-lg">Wijzigingen Opslaan</button>
             </div>
-
-            <button type="submit" class="btn">Bijwerken</button>
-            <a href="games.php" class="btn btn-cancel">Annuleren</a>
         </form>
     </div>
-
 </body>
 </html>

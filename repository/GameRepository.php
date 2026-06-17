@@ -3,7 +3,8 @@ class GameRepository {
     private $db;
 
     public function __construct($database) {
-        $this->db = $database->connect();
+        // We halen de PDO verbinding op via de juiste methode
+        $this->db = $database->getConnection();
     }
 
     public function getAllGames() {
