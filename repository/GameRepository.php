@@ -3,13 +3,13 @@ class GameRepository {
     private $db;
 
     public function __construct($database) {
-        // We halen de PDO verbinding op via de juiste methode
         $this->db = $database->getConnection();
     }
 
     public function getAllGames() {
+        // Aangepast naar genres.genre_id in plaats van genres.id
         $sql = "SELECT games.*, genres.name AS genre_name FROM games 
-                LEFT JOIN genres ON games.genre_id = genres.id";
+                LEFT JOIN genres ON games.genre_id = genres.genre_id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
