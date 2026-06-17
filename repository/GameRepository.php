@@ -1,70 +1,52 @@
 <?php
 class GameRepository {
-    private $conn;
+    private $db;
 
-    // We geven de database verbinding mee via de constructor
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
+    public function __construct($database) {
+        $this->db = $database->connect();
     }
 
-    // 1. READ ALL
-    public function getAll() {
-        $query = "SELECT * FROM games";
-        $stmt = $this->conn->prepare($query);
+    public function getAllGames() {
+        $sql = "SELECT games.*, genres.name AS genre_name FROM games 
+                LEFT JOIN genres ON games.genre_id = genres.id";
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // 2. READ SINGLE
-    public function getById($game_id) {
-        $query = "SELECT * FROM games WHERE game_id = :game_id";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':game_id', $game_id);
-        $stmt->execute();
+    public function getGameById($id) {
+        $sql = "SELECT * FROM games WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // 3. CREATE (Met werkende genre_id en platform_id koppeling)
-    public function create($title, $description, $released_at, $personal_rating, $genre_id = 1, $platform_id = 1) {
-        $query = "INSERT INTO games (title, description, released_at, personal_rating, genre_id, platform_id) 
-                  VALUES (:title, :description, :released_at, :personal_rating, :genre_id, :platform_id)";
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':title', $title);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':released_at', $released_at);
-        $stmt->bindParam(':personal_rating', $personal_rating);
-        $stmt->bindParam(':genre_id', $genre_id);
-        $stmt->bindParam(':platform_id', $platform_id);
-        
-        return $stmt->execute();
+    public function createGame($title, $rating, $genre_id, $image) {
+        $sql = "INSERT INTO games (title, rating, genre_id, image) VALUES (:title, :rating, :genre_id, :image)";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':title' => $title,
+            ':rating' => $rating,
+            ':genre_id' => $genre_id,
+            ':image' => $image
+        ]);
     }
 
-    // 4. UPDATE (Met werkende genre_id en platform_id koppeling)
-    public function update($game_id, $title, $description, $released_at, $personal_rating, $genre_id = 1, $platform_id = 1) {
-        $query = "UPDATE games SET title = :title, description = :description, 
-                  released_at = :released_at, personal_rating = :personal_rating,
-                  genre_id = :genre_id, platform_id = :platform_id 
-                  WHERE game_id = :game_id";
-        $stmt = $this->conn->prepare($query);
-        
-        $stmt->bindParam(':game_id', $game_id);
-        $stmt->bindParam(':title', $title);
-        $stmt->bindParam(':description', $description);
-        $stmt->bindParam(':released_at', $released_at);
-        $stmt->bindParam(':personal_rating', $personal_rating);
-        $stmt->bindParam(':genre_id', $genre_id);
-        $stmt->bindParam(':platform_id', $platform_id);
-        
-        return $stmt->execute();
+    public function updateGame($id, $title, $rating, $genre_id, $image) {
+        if ($image) {
+            $sql = "UPDATE games SET title = :title, rating = :rating, genre_id = :genre_id, image = :image WHERE id = :id";
+            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':image' => $image, ':id' => $id];
+        } else {
+            $sql = "UPDATE games SET title = :title, rating = :rating, genre_id = :genre_id WHERE id = :id";
+            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':id' => $id];
+        }
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
-    // 5. DELETE
-    public function delete($game_id) {
-        $query = "DELETE FROM games WHERE game_id = :game_id";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':game_id', $game_id);
-        return $stmt->execute();
+    public function deleteGame($id) {
+        $sql = "DELETE FROM games WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':id' => $id]);
     }
 }
-?>

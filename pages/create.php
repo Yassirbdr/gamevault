@@ -2,33 +2,30 @@
 require_once '../config/Database.php';
 require_once '../repository/GameRepository.php';
 
-$message = "";
+$database = new Database();
+$db = $database->connect();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
-        $db = new Database();
-        $conn = $db->getConnection();
-        
-        // HIER GING HET MIS: We moeten $conn meegeven aan de Repository!
-        $repo = new GameRepository($conn);
+// Genres ophalen voor het keuzemenu
+$genreStmt = $db->query("SELECT * FROM genres");
+$genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Data ophalen uit het formulier
-        $title = $_POST['title'];
-        $description = $_POST['description'];
-        $released_at = $_POST['released_at'];
-        $personal_rating = $_POST['personal_rating'];
-
-        // Game toevoegen via de repository
-        if ($repo->create($title, $description, $released_at, $personal_rating)) {
-            // Succes? Stuur de gebruiker terug naar het overzicht
-            header("Location: games.php");
-            exit();
-        } else {
-            $message = "<p style='color:red;'>❌ Er is iets misgegaan bij het opslaan.</p>";
-        }
-    } catch (Exception $e) {
-        $message = "<p style='color:red;'>❌ Fout: " . $e->getMessage() . "</p>";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['title'];
+    $rating = $_POST['rating'];
+    $genre_id = $_POST['genre_id'];
+    
+    // Afbeelding upload verwerken
+    $imageName = null;
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+        $imageName = time() . '_' . $_FILES['image']['name'];
+        move_uploaded_file($_FILES['image']['tmp_name'], '../uploads/' . $imageName);
     }
+
+    $gameRepo = new GameRepository($database);
+    $gameRepo->createGame($title, $rating, $genre_id, $imageName);
+    
+    header("Location: games.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -36,48 +33,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Game Toevoegen</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .form-container { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="number"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        .btn { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-cancel { background-color: #6c757d; margin-left: 10px; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-
-    <h1>🎮 Nieuwe Game Toevoegen</h1>
-    
-    <?php echo $message; ?>
-
-    <div class="form-container">
-        <form action="create.php" method="POST">
-            <div class="form-group">
-                <label for="title">Titel:</label>
-                <input type="text" id="title" name="title" required>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-2xl max-w-md w-full">
+        <h1 class="text-3xl font-bold text-blue-500 mb-6 text-center">🎮 Game Toevoegen</h1>
+        
+        <form action="create.php" method="POST" enctype="multipart/form-data" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium mb-2">Titel van de game</label>
+                <input type="text" name="title" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
             </div>
 
-            <div class="form-group">
-                <label for="description">Beschrijving:</label>
-                <textarea id="description" name="description" rows="4" required></textarea>
+            <div>
+                <label class="block text-sm font-medium mb-2">Rating (1 t/m 5)</label>
+                <input type="number" name="rating" min="1" max="5" step="0.1" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
             </div>
 
-            <div class="form-group">
-                <label for="released_at">Release Datum:</label>
-                <input type="date" id="released_at" name="released_at" required>
+            <div>
+                <label class="block text-sm font-medium mb-2">Genre</label>
+                <select name="genre_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <?php foreach ($genres as $genre): ?>
+                        <option value="<?= $genre['id'] ?>"><?= htmlspecialchars($genre['name']) ?></option>
+                    <?php endjoin; ?>
+                </select>
             </div>
 
-            <div class="form-group">
-                <label for="personal_rating">Persoonlijke Rating (1-10):</label>
-                <input type="number" id="personal_rating" name="personal_rating" min="1" max="10" required>
+            <div>
+                <label class="block text-sm font-medium mb-2">Cover Afbeelding</label>
+                <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
             </div>
 
-            <button type="submit" class="btn">Opslaan</button>
-            <a href="games.php" class="btn btn-cancel">Annuleren</a>
+            <div class="pt-4 flex space-x-4">
+                <a href="games.php" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-semibold transition">Annuleren</a>
+                <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold transition shadow-lg">Opslaan</button>
+            </div>
         </form>
     </div>
-
 </body>
 </html>
