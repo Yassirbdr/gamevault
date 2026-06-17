@@ -17,10 +17,14 @@ $game = $gameRepo->getGameById($id);
 $genreStmt = $db->query("SELECT * FROM genres");
 $genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$platformStmt = $db->query("SELECT * FROM platforms");
+$platforms = $platformStmt->fetchAll(PDO::FETCH_ASSOC);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $rating = $_POST['rating'];
     $genre_id = $_POST['genre_id'];
+    $platform_id = $_POST['platform_id'];
     
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         move_uploaded_file($_FILES['image']['tmp_name'], '../uploads/' . $imageName);
     }
 
-    $gameRepo->updateGame($id, $title, $rating, $genre_id, $imageName);
+    $gameRepo->updateGame($id, $title, $rating, $genre_id, $platform_id, $imageName);
     header("Location: games.php");
     exit();
 }
@@ -47,22 +51,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form action="edit.php?id=<?= $id ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
             <div>
                 <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Titel van de game</label>
-                <input type="text" name="title" value="<?= htmlspecialchars($game['title']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                <input type="text" name="title" value="<?= htmlspecialchars($game['title'] ?? '') ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Rating (1-5)</label>
-                    <input type="number" name="rating" min="1" max="5" step="0.1" value="<?= htmlspecialchars($game['personal_rating']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <input type="number" name="rating" min="1" max="5" step="0.1" value="<?= htmlspecialchars($game['personal_rating'] ?? '') ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
                 <div>
                     <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Genre</label>
                     <select name="genre_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
                         <?php foreach ($genres as $genre): ?>
-                            <option value="<?= $genre['genre_id'] ?>" <?= $genre['genre_id'] == $game['genre_id'] ? 'selected' : '' ?>><?= htmlspecialchars($genre['name']) ?></option>
+                            <option value="<?= $genre['genre_id'] ?>" <?= (isset($game['genre_id']) && $genre['genre_id'] == $game['genre_id']) ? 'selected' : '' ?>><?= htmlspecialchars($genre['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Platform</label>
+                <select name="platform_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                    <?php foreach ($platforms as $platform): ?>
+                        <option value="<?= $platform['platform_id'] ?>" <?= (isset($game['platform_id']) && $platform['platform_id'] == $game['platform_id']) ? 'selected' : '' ?>><?= htmlspecialchars($platform['name'] ?? $platform['platform_name'] ?? 'Platform ' . $platform['platform_id']) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div>

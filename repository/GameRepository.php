@@ -21,24 +21,25 @@ class GameRepository {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createGame($title, $rating, $genre_id, $image) {
-        $sql = "INSERT INTO games (title, personal_rating, genre_id, image) VALUES (:title, :rating, :genre_id, :image)";
+    public function createGame($title, $rating, $genre_id, $platform_id, $image) {
+        $sql = "INSERT INTO games (title, personal_rating, genre_id, platform_id, image) VALUES (:title, :rating, :genre_id, :platform_id, :image)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':title' => $title,
             ':rating' => $rating,
             ':genre_id' => $genre_id,
+            ':platform_id' => $platform_id,
             ':image' => $image
         ]);
     }
 
-    public function updateGame($id, $title, $rating, $genre_id, $image) {
+    public function updateGame($id, $title, $rating, $genre_id, $platform_id, $image) {
         if ($image) {
-            $sql = "UPDATE games SET title = :title, personal_rating = :rating, genre_id = :genre_id, image = :image WHERE game_id = :id";
-            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':image' => $image, ':id' => $id];
+            $sql = "UPDATE games SET title = :title, personal_rating = :rating, genre_id = :genre_id, platform_id = :platform_id, image = :image WHERE game_id = :id";
+            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':platform_id' => $platform_id, ':image' => $image, ':id' => $id];
         } else {
-            $sql = "UPDATE games SET title = :title, personal_rating = :rating, genre_id = :genre_id WHERE game_id = :id";
-            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':id' => $id];
+            $sql = "UPDATE games SET title = :title, personal_rating = :rating, genre_id = :genre_id, platform_id = :platform_id WHERE game_id = :id";
+            $params = [':title' => $title, ':rating' => $rating, ':genre_id' => $genre_id, ':platform_id' => $platform_id, ':id' => $id];
         }
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($params);

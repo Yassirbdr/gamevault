@@ -8,10 +8,14 @@ $db = $database->getConnection();
 $genreStmt = $db->query("SELECT * FROM genres");
 $genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$platformStmt = $db->query("SELECT * FROM platforms");
+$platforms = $platformStmt->fetchAll(PDO::FETCH_ASSOC);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $rating = $_POST['rating'];
     $genre_id = $_POST['genre_id'];
+    $platform_id = $_POST['platform_id'];
     
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
@@ -20,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $gameRepo = new GameRepository($database);
-    $gameRepo->createGame($title, $rating, $genre_id, $imageName);
+    $gameRepo->createGame($title, $rating, $genre_id, $platform_id, $imageName);
     
     header("Location: games.php");
     exit();
@@ -59,11 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div>
+                <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Platform</label>
+                <select name="platform_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                    <?php foreach ($platforms as $platform): ?>
+                        <option value="<?= $platform['platform_id'] ?>"><?= htmlspecialchars($platform['name'] ?? $platform['platform_name'] ?? 'Platform ' . $platform['platform_id']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div>
                 <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Cover Afbeelding</label>
                 <div class="border-2 border-dashed border-gray-700 rounded-xl p-4 text-center bg-gray-900/50 hover:bg-gray-900 transition-colors cursor-pointer relative">
                     <input type="file" name="image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     <p class="text-sm text-gray-400">Klik hier om een afbeelding te selecteren</p>
-                    <p class="text-xs text-gray-500 mt-1">PNG, JPG of JPEG</p>
                 </div>
             </div>
 

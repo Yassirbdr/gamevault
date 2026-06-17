@@ -4,12 +4,22 @@ $last_updated = "";
 
 if (isset($_POST['fetch_btc'])) {
     $url = "https://api.coindesk.com/v1/bpi/currentprice.json";
-    $response = @file_get_contents($url);
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response = curl_exec($ch);
+    curl_close($ch);
     
     if ($response) {
         $data = json_decode($response, true);
-        $btc_price = "$" . number_format($data['bpi']['USD']['rate_float'], 2);
-        $last_updated = date("H:i:s");
+        if (isset($data['bpi']['USD']['rate_float'])) {
+            $btc_price = "$" . number_format($data['bpi']['USD']['rate_float'], 2);
+            $last_updated = date("H:i:s");
+        } else {
+            $btc_price = "Ongeldige API data";
+        }
     } else {
         $btc_price = "API Verbindingsfout";
     }
@@ -32,7 +42,7 @@ if (isset($_POST['fetch_btc'])) {
             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Actuele Waarde (USD)</span>
             <span class="text-4xl font-black text-green-400 tracking-tight block my-2"><?= $btc_price ?></span>
             <?php if (!empty($last_updated)): ?>
-                <span class="text-[10px] font-mono text-gray-500 block mt-2">Laatste update om: <?= $last_updated ?></span>
+                <span class="text-mono text-gray-500 block mt-2 text-xs">Laatste update om: <?= $last_updated ?></span>
             <?php endif; ?>
         </div>
 
