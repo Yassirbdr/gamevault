@@ -10,70 +10,86 @@ $games = $gameRepo->getAllGames();
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameVault | Premium Dashboard</title>
+    <title>Game Vault | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
-    <div class="container mx-auto px-6 py-10">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-12 border-b border-gray-800 pb-6 gap-4">
+
+    <header class="bg-gray-800/50 border-b border-gray-800 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 tracking-wider uppercase">🎮 GameVault</h1>
-                <p class="text-gray-400 text-sm mt-1">Beheer je persoonlijke gaming collectie en live statistieken</p>
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 tracking-wider uppercase">🎮 GameVault</h1>
+                <p class="text-xs text-gray-400 mt-0.5">Beheer je persoonlijke gaming collectie en live statistieken</p>
             </div>
             <div class="flex space-x-4">
-                <a href="create.php" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5">＋ Game Toevoegen</a>
-                <a href="api.php" class="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-purple-500/20 hover:-translate-y-0.5">🪙 Live BTC Tracker</a>
+                <a href="create.php" class="bg-blue-600 hover:bg-blue-500 font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
+                    <span>+</span> Game Toevoegen
+                </a>
+                <a href="api.php" class="bg-purple-600 hover:bg-purple-500 font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-purple-600/20 flex items-center gap-2">
+                    🪙 Live BTC Tracker
+                </a>
             </div>
         </div>
+    </header>
 
-        <!-- Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <?php if (empty($games)): ?>
-                <div class="col-span-full bg-gray-800 border border-gray-700 rounded-2xl p-12 text-center">
-                    <p class="text-gray-400 text-lg">Er zijn nog geen games toegevoegd aan je Vault.</p>
-                    <a href="create.php" class="inline-block mt-4 text-blue-400 hover:underline font-semibold">Voeg nu je eerste game toe →</a>
-                </div>
-            <?php else: ?>
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <?php if (empty($games)): ?>
+            <div class="bg-gray-800 border border-gray-800 rounded-2xl p-12 text-center max-w-xl mx-auto">
+                <p class="text-gray-400 text-lg mb-4">Je Vault is momenteel nog leeg. Voeg snel je eerste game toe!</p>
+                <a href="create.php" class="inline-block bg-blue-600 hover:bg-blue-500 font-bold px-6 py-3 rounded-xl transition-colors">Start Je Collectie</a>
+            </div>
+        <?php else: ?>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($games as $game): ?>
-                    <div class="bg-gray-800 border border-gray-750 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between transition-all duration-300 hover:border-gray-600 hover:shadow-indigo-500/5 group">
-                        <div>
-                            <!-- Image Display -->
+                    <div class="bg-gray-800/40 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all group flex flex-col justify-between">
+                        
+                        <div class="aspect-[16/10] w-full bg-gray-900 flex items-center justify-center border-b border-gray-800 relative overflow-hidden">
                             <?php if (!empty($game['image']) && file_exists('../uploads/' . $game['image'])): ?>
-                                <div class="overflow-hidden h-52 border-b border-gray-700">
-                                    <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Game cover">
-                                </div>
+                                <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" alt="Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <?php elseif (!empty($game['image'])): ?>
+                                <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" alt="Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             <?php else: ?>
-                                <div class="w-full h-52 bg-gradient-to-br from-gray-700 to-gray-800 flex flex-col items-center justify-center text-gray-400 border-b border-gray-700">
-                                    <span class="text-4xl mb-2">📸</span>
-                                    <span class="text-xs uppercase tracking-widest font-semibold text-gray-500">Geen afbeelding</span>
+                                <div class="text-center p-6 text-gray-600">
+                                    <span class="text-3xl block mb-2">📸</span>
+                                    <span class="text-xs font-bold uppercase tracking-wider">Geen Afbeelding</span>
                                 </div>
                             <?php endif; ?>
                             
-                            <!-- Content -->
-                            <div class="p-6">
-                                <span class="inline-block bg-blue-950/60 border border-blue-800 text-blue-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-widest mb-3">
-                                    <?= htmlspecialchars($game['genre_name'] ?? 'Algemeen') ?>
-                                </span>
-                                <h2 class="text-2xl font-extrabold text-white tracking-tight leading-tight mb-2 group-hover:text-blue-400 transition-colors"><?= htmlspecialchars($game['title']) ?></h2>
-                                <div class="flex items-center space-x-1 text-xl text-yellow-400 font-black mt-3">
-                                    <span>⭐</span>
-                                    <span><?= htmlspecialchars($game['personal_rating'] ?? '0') ?></span>
-                                    <span class="text-gray-500 text-sm font-normal">/ 5</span>
+                            <span class="absolute top-4 left-4 bg-blue-950/80 border border-blue-500/50 text-blue-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md backdrop-blur-sm">
+                                <?= htmlspecialchars($game['genre_name'] ?? 'Onbekend') ?>
+                            </span>
+                        </div>
+
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-extrabold text-white mb-4 tracking-tight group-hover:text-blue-400 transition-colors">
+                                    <?= htmlspecialchars($game['title']) ?>
+                                </h3>
+                                
+                                <div class="flex items-center space-x-2 bg-gray-900/50 border border-gray-800 w-fit px-3 py-1.5 rounded-xl mb-6">
+                                    <span class="text-yellow-500 text-lg">⭐</span>
+                                    <span class="text-sm font-black text-gray-200">
+                                        <?= htmlspecialchars($game['personal_rating'] ?? $game['rating'] ?? '0.0') ?>
+                                    </span>
+                                    <span class="text-xs text-gray-500 font-bold">/ 5.0</span>
                                 </div>
                             </div>
+
+                            <div class="flex space-x-3 border-t border-gray-800/80 pt-4">
+                                <a href="edit.php?id=<?= $game['game_id'] ?>" class="w-1/2 text-center bg-gray-900 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl font-bold text-sm transition-colors text-gray-300 hover:text-white">
+                                    ✏️ Bewerken
+                                </a>
+                                <a href="delete.php?id=<?= $game['game_id'] ?>" onclick="return confirm('Weet je zeker dat je deze game wilt verwijderen?')" class="w-1/2 text-center bg-red-950/20 border border-red-900/50 hover:bg-red-900/40 py-2.5 rounded-xl font-bold text-sm transition-colors text-red-400">
+                                    🗑️ Wissen
+                                </a>
+                            </div>
                         </div>
-                        
-                        <!-- Actions -->
-                        <div class="p-6 bg-gray-850 border-t border-gray-750 flex space-x-4">
-                            <a href="edit.php?id=<?= $game['game_id'] ?>" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-bold transition-colors">Bewerken</a>
-                            <a href="delete.php?id=<?= $game['game_id'] ?>" onclick="return confirm('Weet je zeker dat je deze game wilt verwijderen uit je Vault?')" class="w-1/2 text-center bg-red-600/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white py-3 rounded-xl font-bold transition-all">Verwijderen</a>
-                        </div>
+
                     </div>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
+            </div>
+        <?php endif; ?>
+    </main>
+
 </body>
 </html>
