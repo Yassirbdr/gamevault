@@ -5,7 +5,6 @@ require_once '../repository/GameRepository.php';
 $database = new Database();
 $db = $database->getConnection();
 
-// Genres dynamisch inladen
 $genreStmt = $db->query("SELECT * FROM genres");
 $genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -53,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Genre</label>
                     <select name="genre_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
                         <?php foreach ($genres as $genre): ?>
-                            <option value="<?= $genre['id'] ?>"><?= htmlspecialchars($genre['name']) ?></option>
+                            <option value="<?= $genre['genre_id'] ?>"><?= htmlspecialchars($genre['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

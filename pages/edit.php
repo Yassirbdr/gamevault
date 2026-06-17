@@ -4,7 +4,6 @@ require_once '../repository/GameRepository.php';
 
 $database = new Database();
 $db = $database->getConnection();
-
 $gameRepo = new GameRepository($database);
 
 if (!isset($_GET['id'])) {
@@ -15,7 +14,6 @@ if (!isset($_GET['id'])) {
 $id = $_GET['id'];
 $game = $gameRepo->getGameById($id);
 
-// Genres ophalen
 $genreStmt = $db->query("SELECT * FROM genres");
 $genres = $genreStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -55,13 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Rating (1-5)</label>
-                    <input type="number" name="rating" min="1" max="5" step="0.1" value="<?= htmlspecialchars($game['rating']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <input type="number" name="rating" min="1" max="5" step="0.1" value="<?= htmlspecialchars($game['personal_rating']) ?>" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
                 <div>
                     <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Genre</label>
                     <select name="genre_id" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer">
                         <?php foreach ($genres as $genre): ?>
-                            <option value="<?= $genre['id'] ?>" <?= $genre['id'] == $game['genre_id'] ? 'selected' : '' ?>><?= htmlspecialchars($genre['name']) ?></option>
+                            <option value="<?= $genre['genre_id'] ?>" <?= $genre['genre_id'] == $game['genre_id'] ? 'selected' : '' ?>><?= htmlspecialchars($genre['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -71,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">Nieuwe Cover Afbeelding (optioneel)</label>
                 <div class="border-2 border-dashed border-gray-700 rounded-xl p-4 text-center bg-gray-900/50 hover:bg-gray-900 transition-colors cursor-pointer relative">
                     <input type="file" name="image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <p class="text-sm text-gray-400">Klik om te wijzigen of sleep foto hiernaartoe</p>
+                    <p class="text-sm text-gray-400">Klik om te wijzigen</p>
                 </div>
             </div>
 

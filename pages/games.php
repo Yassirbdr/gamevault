@@ -14,8 +14,9 @@ $games = $gameRepo->getAllGames();
     <title>GameVault | Premium Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen selection:bg-blue-500 selection:text-white">
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
     <div class="container mx-auto px-6 py-10">
+        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-12 border-b border-gray-800 pb-6 gap-4">
             <div>
                 <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 tracking-wider uppercase">🎮 GameVault</h1>
@@ -27,6 +28,7 @@ $games = $gameRepo->getAllGames();
             </div>
         </div>
 
+        <!-- Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <?php if (empty($games)): ?>
                 <div class="col-span-full bg-gray-800 border border-gray-700 rounded-2xl p-12 text-center">
@@ -37,6 +39,7 @@ $games = $gameRepo->getAllGames();
                 <?php foreach ($games as $game): ?>
                     <div class="bg-gray-800 border border-gray-750 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between transition-all duration-300 hover:border-gray-600 hover:shadow-indigo-500/5 group">
                         <div>
+                            <!-- Image Display -->
                             <?php if (!empty($game['image']) && file_exists('../uploads/' . $game['image'])): ?>
                                 <div class="overflow-hidden h-52 border-b border-gray-700">
                                     <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Game cover">
@@ -48,6 +51,7 @@ $games = $gameRepo->getAllGames();
                                 </div>
                             <?php endif; ?>
                             
+                            <!-- Content -->
                             <div class="p-6">
                                 <span class="inline-block bg-blue-950/60 border border-blue-800 text-blue-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-widest mb-3">
                                     <?= htmlspecialchars($game['genre_name'] ?? 'Algemeen') ?>
@@ -55,15 +59,16 @@ $games = $gameRepo->getAllGames();
                                 <h2 class="text-2xl font-extrabold text-white tracking-tight leading-tight mb-2 group-hover:text-blue-400 transition-colors"><?= htmlspecialchars($game['title']) ?></h2>
                                 <div class="flex items-center space-x-1 text-xl text-yellow-400 font-black mt-3">
                                     <span>⭐</span>
-                                    <span><?= htmlspecialchars($game['rating']) ?></span>
+                                    <span><?= htmlspecialchars($game['personal_rating'] ?? '0') ?></span>
                                     <span class="text-gray-500 text-sm font-normal">/ 5</span>
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- Actions -->
                         <div class="p-6 bg-gray-850 border-t border-gray-750 flex space-x-4">
-                            <a href="edit.php?id=<?= $game['id'] ?>" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-bold transition-colors">Bewerken</a>
-                            <a href="delete.php?id=<?= $game['id'] ?>" onclick="return confirm('Weet je zeker dat je deze game wilt verwijderen uit je Vault?')" class="w-1/2 text-center bg-red-600/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white py-3 rounded-xl font-bold transition-all">Verwijderen</a>
+                            <a href="edit.php?id=<?= $game['game_id'] ?>" class="w-1/2 text-center bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-bold transition-colors">Bewerken</a>
+                            <a href="delete.php?id=<?= $game['game_id'] ?>" onclick="return confirm('Weet je zeker dat je deze game wilt verwijderen uit je Vault?')" class="w-1/2 text-center bg-red-600/20 hover:bg-red-600 border border-red-500/30 text-red-400 hover:text-white py-3 rounded-xl font-bold transition-all">Verwijderen</a>
                         </div>
                     </div>
                 <?php endforeach; ?>
