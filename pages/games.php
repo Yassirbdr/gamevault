@@ -1,10 +1,12 @@
 <?php
 require_once '../config/Database.php';
-require_once '../repository/GameRepository.php';
+require_once '../repository/Game.php'; // Verwijst nu naar je nieuwe bestand!
 
 $database = new Database();
-$gameRepo = new GameRepository($database);
-$games = $gameRepo->getAllGames();
+$pdo = $database->getConnection(); // Haalt de pure PDO-connectie op
+
+$gameObject = new Game($pdo); // Maakt het object aan volgens de schoolstijl
+$games = $gameObject->getAllGames();
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -46,8 +48,6 @@ $games = $gameRepo->getAllGames();
                         <div class="aspect-[16/10] w-full bg-gray-900 flex items-center justify-center border-b border-gray-800 relative overflow-hidden">
                             <?php if (!empty($game['image']) && file_exists('../uploads/' . $game['image'])): ?>
                                 <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" alt="Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            <?php elseif (!empty($game['image'])): ?>
-                                <img src="../uploads/<?= htmlspecialchars($game['image']) ?>" alt="Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             <?php else: ?>
                                 <div class="text-center p-6 text-gray-600">
                                     <span class="text-3xl block mb-2">📸</span>
@@ -55,9 +55,16 @@ $games = $gameRepo->getAllGames();
                                 </div>
                             <?php endif; ?>
                             
-                            <span class="absolute top-4 left-4 bg-blue-950/80 border border-blue-500/50 text-blue-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md backdrop-blur-sm">
-                                <?= htmlspecialchars($game['genre_name'] ?? 'Onbekend') ?>
-                            </span>
+                            <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+                                <span class="bg-blue-950/80 border border-blue-500/50 text-blue-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md backdrop-blur-sm">
+                                    <?= htmlspecialchars($game['genre_name'] ?? 'Onbekend') ?>
+                                </span>
+                                <?php if (!empty($game['platform_name'])): ?>
+                                <span class="bg-purple-950/80 border border-purple-500/50 text-purple-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md backdrop-blur-sm">
+                                    <?= htmlspecialchars($game['platform_name']) ?>
+                                </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
                         <div class="p-6 flex-grow flex flex-col justify-between">
@@ -69,7 +76,7 @@ $games = $gameRepo->getAllGames();
                                 <div class="flex items-center space-x-2 bg-gray-900/50 border border-gray-800 w-fit px-3 py-1.5 rounded-xl mb-6">
                                     <span class="text-yellow-500 text-lg">⭐</span>
                                     <span class="text-sm font-black text-gray-200">
-                                        <?= htmlspecialchars($game['personal_rating'] ?? $game['rating'] ?? '0.0') ?>
+                                        <?= htmlspecialchars($game['personal_rating'] ?? '0.0') ?>
                                     </span>
                                     <span class="text-xs text-gray-500 font-bold">/ 5.0</span>
                                 </div>
