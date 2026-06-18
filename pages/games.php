@@ -84,10 +84,10 @@ $games = $gameObject->getAllGames();
 
                             <div class="flex space-x-3 border-t border-gray-800/80 pt-4">
                                 <a href="edit.php?id=<?= $game['game_id'] ?>" class="w-1/2 text-center bg-gray-900 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl font-bold text-sm transition-colors text-gray-300 hover:text-white">
-                                    ✏️ Bewerken
+                                    Bewerken
                                 </a>
-                                <a href="delete.php?id=<?= $game['game_id'] ?>" onclick="return confirm('Weet je zeker dat je deze game wilt verwijderen?')" class="w-1/2 text-center bg-red-950/20 border border-red-900/50 hover:bg-red-900/40 py-2.5 rounded-xl font-bold text-sm transition-colors text-red-400">
-                                    🗑️ Wissen
+                                <a href="delete.php?id=<?= $game['game_id'] ?>" class="w-1/2 text-center bg-red-950/20 border border-red-900/50 hover:bg-red-900/40 py-2.5 rounded-xl font-bold text-sm transition-colors text-red-400">
+                                    Wissen
                                 </a>
                             </div>
                         </div>
